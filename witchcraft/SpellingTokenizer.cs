@@ -105,7 +105,7 @@ namespace SpellingConsole
     {
 
         private int maxQueryTerms = 10;
-        private static NorvigSpell norvig = null;
+        private static GivronSpell givron = null;
         private static Ranker ranker = null;
 
         private List<string> tokens = null;
@@ -114,9 +114,9 @@ namespace SpellingConsole
 
         public SpellingTokenizer()
         {
-            if (norvig == null)
+            if (givron == null)
             {
-                norvig = new NorvigSpell();
+                givron = new GivronSpell();
             }
 
             if (ranker == null)
@@ -248,7 +248,7 @@ namespace SpellingConsole
 
             foreach (var word in tokens)
             {
-                List<Token> tuples = norvig.TopNCorrect(word, maxCombinationsPerToken);
+                List<Token> tuples = givron.TopNCorrect(word, maxCombinationsPerToken);
                 chain.Add(tuples);
                 //Console.WriteLine("list length " + tuples.Count.ToString());
 
