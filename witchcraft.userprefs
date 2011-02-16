@@ -1,6 +1,6 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="SpellingConsole/Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="witchcraft/GivronSpell.cs">
     <Files>
       <File FileName="SpellingConsole/Program.cs" Line="117" Column="1" />
       <File FileName="SpellingConsole/SpellingTokenizer.cs" Line="210" Column="7" />
@@ -8,6 +8,11 @@
       <File FileName="SpellingConsole/app.config" Line="9" Column="48" />
       <File FileName="SpellingConsole/Common.cs" Line="1" Column="1" />
       <File FileName="SpellingConsole/SpellerHelper.cs" Line="60" Column="15" />
+      <File FileName="witchcraft/Main.cs" Line="1" Column="1" />
+      <File FileName="witchcraft/witchcraft.csproj" Line="1" Column="1" />
+      <File FileName="witchcraft/SpellingTokenizer.cs" Line="1" Column="1" />
+      <File FileName="witchcraft/SpellerHelper.cs" Line="1" Column="1" />
+      <File FileName="witchcraft/GivronSpell.cs" Line="250" Column="21" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
