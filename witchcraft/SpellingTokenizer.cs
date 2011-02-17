@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 
 namespace SpellingConsole
@@ -101,6 +102,15 @@ namespace SpellingConsole
 
     }
 
+    class Band
+    {
+        public long min = 0;
+        public long max = 0;
+        public long band = 0;
+
+    }
+
+
     public class SpellingTokenizer
     {
 
@@ -111,20 +121,143 @@ namespace SpellingConsole
         private List<string> tokens = null;
         delegate int comp(Variation v1, Variation v2);
         private int maxCombinationsPerToken = 100;
+        private Dictionary<string, double> dictionary = new Dictionary<string, double>();
+
+        // band information for initial ranks.
+        private List<Band> bandInfo = new List<Band>();
+        private long dictionaryCutOff = 1000;
+        private long dictionaryNormaliser = 1000000;
 
         public SpellingTokenizer()
         {
-            if (givron == null)
+            ReadConfig();
+
+            if (dictionary.Count == 0)
             {
-                givron = new GivronSpell();
+                UpdateDictionary("1gram-sorted");
+
             }
 
             if (ranker == null)
             {
-                ranker = new Ranker();
+                ranker = new Ranker(dictionary);
             }
 
-            ReadConfig();
+            if (givron == null)
+            {
+
+                // givron has access to dictionary.
+                givron = new GivronSpell( dictionary, ranker );
+                
+            }
+
+            
+            
+
+        }
+
+        private long FindBandForRawRank(long rawRank)
+        {
+
+
+            // not sure this is working.
+            //long res = bandInfo.Where( n => n.min >= rawRank ).Where( n => n.max >= rawRank).Select( n => n.band ).First();
+
+            long res = 0;
+            foreach (var i in bandInfo)
+            {
+                if (i.min <= rawRank && rawRank <= i.max)
+                {
+                    res = i.band;
+                    break;
+                }
+            }
+
+
+            return res;
+
+        }
+
+        // modified the existing dictionary member variable.
+        private void UpdateDictionary(string filename)
+        {
+
+            using (FileStream fs = File.OpenRead(filename))
+            {
+                using (TextReader reader = new StreamReader(fs))
+                {
+                    var quit = false;
+
+                    var cc = 0;
+
+                    while (!quit)
+                    {
+
+                        cc++;
+
+                        if (cc % 100000 == 0)
+                        {
+                            Console.WriteLine(cc);
+                        }
+                        var data = reader.ReadLine();
+
+                        try
+                        {
+
+                            if (data == null)
+                            {
+
+                                break;
+                            }
+
+
+                            var idx = 0;
+                            while (data[idx] == ' ')
+                            {
+                                ++idx;
+                            }
+
+                            var data2 = data.Substring(idx);
+
+                            var indexOfSpaceAfterCount = data2.IndexOf(' ');
+                            var count = Convert.ToInt64(data2.Substring(0, indexOfSpaceAfterCount));
+
+                            if (count > dictionaryCutOff)
+                            {
+
+                                //count = count / dictionaryNormaliser;
+
+                                count = FindBandForRawRank(count);
+
+                                // modify count by dividing by some divisor.
+                                var rest = data2.Substring(indexOfSpaceAfterCount + 1);
+
+
+                                // remove punctuation.
+                                Regex rgx1 = new Regex("[-,.\"']");
+                                var data3 = rgx1.Replace(rest, "");
+
+                                // check for illegal chars in rest
+                                // if no illegal chars, then store.
+                                Regex rgx = new Regex("[^a-z ]");
+                                var data4 = rgx.Replace(data3, "");
+
+                                if (data3 == data4)
+                                {
+                                    dictionary[data3] = count;
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            // ugly catch all, but just want to be able to skip a single line that causing us an issue.
+                            Console.WriteLine("EX " + e.Message);
+                        }
+                    }
+
+
+                }
+            }
 
         }
 
@@ -136,7 +269,36 @@ namespace SpellingConsole
 
 
             maxCombinationsPerToken = (int)aps.GetValue("MaxCombinationsPerToken", typeof(System.Int32));
+            dictionaryCutOff = (long)aps.GetValue("DictionaryCutOff", typeof(System.Int64));
+            dictionaryNormaliser = (long)aps.GetValue("DictionaryNormaliser", typeof(System.Int64));
 
+            // read band info, for ranking purposes.
+            var c = 1;
+            while (true)
+            {
+                try
+                {
+                    var key = "band" + c.ToString();
+                    var s = (string)aps.GetValue(key, typeof(System.String));
+                    var sp = s.Split(':');
+                    var b = new Band();
+
+                    b.min = sp[0].GetLongElse(0);
+                    b.max = sp[1].GetLongElse(0);
+                    b.band = sp[2].GetLongElse(0);
+
+                    bandInfo.Add(b);
+
+                    c++;
+                }
+                catch (Exception e)
+                {
+                    // HACK!!!!
+                    break;
+                }
+
+
+            }
         }
 
         // just generates the final query strings and combined rank.

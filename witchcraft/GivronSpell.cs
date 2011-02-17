@@ -8,40 +8,27 @@ using System.Text.RegularExpressions;
 namespace SpellingConsole
 {
 	
-	class Band
-	{
-		public long min = 0;
-		public long max =0 ;
-		public long band = 0;
-		
-	}
+
 	
     class GivronSpell
     {
 
         // map of word to count of words.
-        Dictionary<string, long > dictionary = new Dictionary<string, long>();
+        Dictionary<string, double> dictionary = null;
 
 
         // can find alternate.
         string alphabet = "abcdefghhijklmnopqrstuvwxyz";
-
-        private long dictionaryCutOff = 1000;
-		private long dictionaryNormaliser = 1000000;
-		
+	
         // ranker...
-        private Ranker ranker = new Ranker();
+        private Ranker ranker = null;
 		
-		// band information for initial ranks.
-		private List< Band > bandInfo = new List<Band>();
-		
-        public GivronSpell()
+        public GivronSpell(Dictionary<string, double> d, Ranker r)
         {
             ReadConfig();
+            dictionary = d;
+            ranker = r;
 
-			//dictionary = LoadDictionaryORIG();
-            UpdateDictionary("1gram-sorted");
-            //UpdateDictionary("2gram");
         }
 
         
@@ -52,61 +39,10 @@ namespace SpellingConsole
 
 
             System.Configuration.AppSettingsReader aps = new System.Configuration.AppSettingsReader();
-            dictionaryCutOff = (long)aps.GetValue("DictionaryCutOff", typeof(System.Int64));
-			dictionaryNormaliser = (long)aps.GetValue("DictionaryNormaliser", typeof(System.Int64));
-			
-			// read band info, for ranking purposes.
-			var c = 1;
-			while (true)
-			{
-				try
-				{
-					var key = "band"+ c.ToString();
-					var s = (string)aps.GetValue( key , typeof(System.String));
-					var sp = s.Split(':');
-					var b = new Band();
-					
-					b.min = sp[0].GetLongElse( 0);
-					b.max = sp[1].GetLongElse( 0);
-					b.band = sp[2].GetLongElse(0);
-					
-					bandInfo.Add( b );
-					
-					c++;
-				}
-				catch( Exception e)
-				{
-					// HACK!!!!
-					break;
-				}
-			
-						
-			}
-			
-			Console.WriteLine("bandinfo length "+ bandInfo.Count.ToString() );
+
         }
 		
-		private long FindBandForRawRank( long rawRank)
-		{
-			
-			
-			// not sure this is working.
-			//long res = bandInfo.Where( n => n.min >= rawRank ).Where( n => n.max >= rawRank).Select( n => n.band ).First();
-			
-			long res = 0 ;
-			foreach( var i in bandInfo)
-			{
-				if ( i.min <= rawRank && rawRank <= i.max)
-				{
-					res = i.band;
-					break;
-				}
-			}
-			
-			
-			return res;
-				
-		}
+
 		
 		// used to check single word.
 		public bool WordExists( string word )
@@ -157,93 +93,7 @@ namespace SpellingConsole
             return dictionary;
         }
 
-        // modified the existing dictionary member variable.
-        private void UpdateDictionary( string filename)
-        {
-
-            using (FileStream fs = File.OpenRead(filename ))
-            {
-                using (TextReader reader = new StreamReader(fs))
-                {
-                    var quit = false;
-					
-					var cc = 0;
-					
-                    while (!quit)
-                    {
-						
-						cc++;
-						
-						if ( cc % 100000 == 0)
-						{
-							Console.WriteLine( cc );	
-						}
-                        var data = reader.ReadLine();
-
-                        try
-                        {
-
-                            if (data == null)
-                            {
-
-                                break;
-                            }
-
-
-                            var idx = 0;
-                            while (data[idx] == ' ')
-                            {
-                                ++idx;
-                            }
-
-                            var data2 = data.Substring(idx);
-
-                            var indexOfSpaceAfterCount = data2.IndexOf(' ');
-                            var count = Convert.ToInt64(data2.Substring(0, indexOfSpaceAfterCount));
-
-                            if (count > dictionaryCutOff)
-                            {
-								
-								//count = count / dictionaryNormaliser;
-								
-								count = FindBandForRawRank( count );
-								
-								// modify count by dividing by some divisor.
-                                var rest = data2.Substring(indexOfSpaceAfterCount + 1);
-
-
-                                // remove punctuation.
-                                Regex rgx1 = new Regex("[-,.\"']");
-                                var data3 = rgx1.Replace(rest, "");
-
-                                // check for illegal chars in rest
-                                // if no illegal chars, then store.
-                                Regex rgx = new Regex("[^a-z ]");
-                                var data4 = rgx.Replace(data3, "");
-								
-								if (data4 == "tax")
-								{
-									Console.WriteLine("TAX TAX TAX");
-									
-								}
-                                if (data3 == data4)
-                                {
-                                    dictionary[data3] = count;
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            // ugly catch all, but just want to be able to skip a single line that causing us an issue.
-							Console.WriteLine("EX "+ e.Message);
-                        }
-                    }
-
-
-                }
-            }
-
-        }
+     
 
 
         // return enumerable of tuples.
@@ -588,29 +438,7 @@ namespace SpellingConsole
 
     class MainClass
     {
-        public static void Main1(string[] args)
-        {
-            //var word = args[0];
 
-            var word = "the";
-            var givron = new GivronSpell();
-
-            var sw = new Stopwatch();
-            sw.Start();
-            var l = givron.TopNCorrect(word, 100);
-            sw.Stop();
-
-            TimeSpan ts = sw.Elapsed;
-			
-			foreach( var i in l )
-			{
-				Console.WriteLine("res: " + i.term);
-			}
-
-            string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds);
-        }
     }
 }
 

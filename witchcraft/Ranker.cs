@@ -16,11 +16,15 @@ namespace SpellingConsole
         private double multiplierReductionPerInsertion = 0.95;
         private double multiplierIncreaseForCorrectSpelling = 1.05;
 
+        // map of word to count of words.
+        private Dictionary<string, double > dictionary = null;
+
 		
-		public Ranker()
+		public Ranker( Dictionary<string, double> d  )
 		{
 			ReadConfig();
 			
+            dictionary = d;
 		}
 		
         private void ReadConfig()
@@ -90,7 +94,8 @@ namespace SpellingConsole
                         // orig score is just based off dictionary popularity.
                         var origScore = token.score;
 
-                        var newScore = origScore;
+                        // get the score for the NEW word that was created.
+                        var newScore = dictionary.getOrElse(token.term, 1.0);
 
                         // adjustment based on # modifications.
                         // should adjustment be % of existing or totals added/removed?
@@ -149,74 +154,6 @@ namespace SpellingConsole
 
             return t;
         }
-
-        // does through ALL results and ranks them according to the rules
-        // we'll eventually determine.
-        // eg, fewer modifications better than more.
-        // entry in tuple is more important than single word correction... etc.
-        public void Rank(IEnumerable<List<Token>> results)
-        {
-
-            Console.WriteLine("Ranker::Rank start");
-
-            // read the config every time this is executed so we have the latest and greatest.
-            ReadConfig();
-
-            // rank each individually.
-            foreach (var tokenSentence in results)
-            {
-                foreach (var token in tokenSentence)
-                {
-
-                    // if tokens term is "" then its just a dummy. ugly but required atm.
-                    if (token.term != "")
-                    {
-
-
-                        // if term is same as original term, then increase percentage
-                        if (token.term == token.origTerm)
-                        {
-                            token.score = 1.0;  // FIXME: utter bollocks but needs to rank fairly high unless another high ranking tuple effects this?
-
-                        }
-                        else
-                        {
-                            // orig score is just based off dictionary popularity.
-                            var origScore = token.score;
-
-                            var newScore = origScore;
-
-                            // adjustment based on # modifications.
-                            // should adjustment be % of existing or totals added/removed?
-                            newScore = newScore * (multiplierReductionPerChange * token.modifications.Count);
-
-                            // adjustment based on deletions
-                            newScore = newScore * (multiplierReductionPerDeletion * GetModificationTypeCount(token, ModificationType.Delete));
-
-                            // adjustment based on insertions
-                            newScore = newScore * (multiplierReductionPerInsertion * GetModificationTypeCount(token, ModificationType.Insert));
-
-                            // adjustment based on transposition
-                            newScore = newScore * (multiplierReductionPerTransposition * GetModificationTypeCount(token, ModificationType.Transpose));
-
-                            // adjustment based on replace
-                            newScore = newScore * (multiplierReductionPerReplace * GetModificationTypeCount(token, ModificationType.Replace));
-
-                            // just simple for now.
-                            token.score = newScore;
-
-
-
-                        }
-                    }
-                }
-
-            }
-            Console.WriteLine("Ranker::Rank end");
-
-        }
-
-
 
 
     }
