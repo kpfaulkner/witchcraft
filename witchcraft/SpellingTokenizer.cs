@@ -127,14 +127,15 @@ namespace SpellingConsole
         private List<Band> bandInfo = new List<Band>();
         private long dictionaryCutOff = 1000;
         private long dictionaryNormaliser = 1000000;
-
+		private double bigramMultiplier = 0.0;
+		
         public SpellingTokenizer()
         {
             ReadConfig();
 
             if (dictionary.Count == 0)
             {
-                UpdateDictionary("1gram-sorted");
+                UpdateDictionary("dictionary.txt");
 
             }
 
@@ -200,7 +201,9 @@ namespace SpellingConsole
                             Console.WriteLine(cc);
                         }
                         var data = reader.ReadLine();
-
+						
+						//Console.WriteLine("data " + data );
+						
                         try
                         {
 
@@ -210,16 +213,22 @@ namespace SpellingConsole
                                 break;
                             }
 
-
+							
+							if (false )
+							{
                             var idx = 0;
                             while (data[idx] == ' ')
                             {
                                 ++idx;
                             }
 
-                            var data2 = data.Substring(idx);
-
-                            var indexOfSpaceAfterCount = data2.IndexOf(' ');
+                            var data2old = data.Substring(idx);
+							}
+							
+							var data2 = data;
+							
+								
+                            var indexOfSpaceAfterCount = data2.IndexOf('\t');
                             var count = Convert.ToInt64(data2.Substring(0, indexOfSpaceAfterCount));
 
                             if (count > dictionaryCutOff)
@@ -271,7 +280,10 @@ namespace SpellingConsole
             maxCombinationsPerToken = (int)aps.GetValue("MaxCombinationsPerToken", typeof(System.Int32));
             dictionaryCutOff = (long)aps.GetValue("DictionaryCutOff", typeof(System.Int64));
             dictionaryNormaliser = (long)aps.GetValue("DictionaryNormaliser", typeof(System.Int64));
-
+			
+			bigramMultiplier = (double) aps.GetValue("BigramMultiplier", typeof( System.Double) );
+			
+				
             // read band info, for ranking purposes.
             var c = 1;
             while (true)
@@ -324,15 +336,41 @@ namespace SpellingConsole
                 sb.Clear();
 
                 var score = 1.0;
-                foreach (var t in c)
+                var previousWord = "";
+				var bigramScoreAdjustment = 0.0;
+				var bigramScore = 1.0;
+				foreach (var t in c)
                 {
-
+					
+				
+					if ( previousWord == "")
+					{
+						previousWord = t.term;	
+						bigramScore = 1.0;
+					}
+					else
+					{
+						var bigram = previousWord + " "+ t.term;
+						
+						// bigram score.
+						bigramScore = dictionary.getOrElse( bigram, 1.0);
+						
+					}
+					
                     if (t.term != "")
                     {
                         sb.Append(t.term);
                         sb.Append(" ");
                         score *= t.score;
-                    }
+						
+						Console.WriteLine("score before bigram" + score.ToString() );
+						
+						score *= bigramScore;
+                    	Console.WriteLine("score after bigram" + score.ToString() );
+						
+					}
+
+					
 
                 }
 
@@ -450,13 +488,33 @@ namespace SpellingConsole
 
             // generate result strings for top n results 
             var finalQueries = GenerateQueries(results, n);
+			
+			// hack modification for " s" situation. ie, where apostrophies occur.
+			ModifyBasedOnS( finalQueries) ;
+			
+            // modify score based on bigrams scores.
+			ModifyBasedOnBigrams( finalQueries );
+			
 
-            //var finalQueries = new List<ResultQuery>();
 
             return finalQueries;
 
         }
+		
+		private void  ModifyBasedOnBigrams( List<ResultQuery> queryList )
+		{
+			// go through every pair of words and check for score adjustments.
+			
+			
+		
+		}
 
+		// no idea on this one yet.
+		private void  ModifyBasedOnS( List<ResultQuery> queryList )
+		{
+		
+		}
+		
         public static List<Tuple<string, string>> LoadTestData(string filename)
         {
             var l = new List<Tuple<string, string>>();
