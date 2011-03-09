@@ -83,11 +83,13 @@ namespace SpellingConsole
                     // if term is same as original term, then increase percentage
                     if (token.term == token.origTerm)
                     {
-                        //token.score = 1.0;  // FIXME: utter bollocks but needs to rank fairly high unless another high ranking tuple effects this?
-                        // UNSURE.
-                        //token.score = System.UInt64.MaxValue / 2;
-						token.score = token.score * multiplierIncreaseForCorrectSpelling;
-                        
+						// if original word is in dictionary, then multiply like crazy (stupid rule)
+						if (dictionary.ContainsKey( token.term ) )
+						{
+							token.score = token.score * multiplierIncreaseForCorrectSpelling;
+						}
+						
+						// otherwise leave the score alone?
                     }
                     else
                     {

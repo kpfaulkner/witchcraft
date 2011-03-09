@@ -335,7 +335,7 @@ namespace SpellingConsole
 						//Console.WriteLine("{0} in dictionary", s.term );
 						
 	                    // initial score.
-	                    s.score = dictionary.getOrElse(s.term, 1);
+	                    s.score = dictionary.getOrElse(s.term, 1.0);
 						
 						//Console.WriteLine("term score :" + s.term + " : " + s.score.ToString() );
 						
@@ -385,14 +385,10 @@ namespace SpellingConsole
             List<Tuple<string,int>> l2 = new List<Tuple<string,int>>();
 
             // rank.
-			//Console.WriteLine("before sort " + l.Count.ToString() );
-            l.Sort(delegate(Token a, Token b) { return a.score.CompareTo( b.score ); });
-			//Console.WriteLine("after sort " + l.Count.ToString() );
-
+			l.Sort(delegate(Token a, Token b) { return a.score.CompareTo( b.score ); });
+			
             l.Reverse();
 
-            // top 5.?
-			//Console.WriteLine("result reverse  " + l.Count.ToString() );
             double totalScore = 0;
 			
 			var len = l.Count;

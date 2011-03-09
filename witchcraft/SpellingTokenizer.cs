@@ -126,7 +126,8 @@ namespace SpellingConsole
         // band information for initial ranks.
         private List<Band> bandInfo = new List<Band>();
         private long dictionaryCutOff = 1000;
-        private long dictionaryNormaliser = 1000000;
+       	
+		private long dictionaryNormaliser = 0;
 		private double bigramMultiplier = 0.0;
 		
         public SpellingTokenizer()
@@ -136,7 +137,7 @@ namespace SpellingConsole
             if (dictionary.Count == 0)
             {
                 UpdateDictionary("dictionary.txt");
-
+				
             }
 
             if (ranker == null)
@@ -230,7 +231,9 @@ namespace SpellingConsole
 								
                             var indexOfSpaceAfterCount = data2.IndexOf('\t');
                             var count = Convert.ToInt64(data2.Substring(0, indexOfSpaceAfterCount));
-
+							
+							//Console.WriteLine("count is " + count.ToString() );
+							
                             if (count > dictionaryCutOff)
                             {
 
@@ -250,7 +253,9 @@ namespace SpellingConsole
                                 // if no illegal chars, then store.
                                 Regex rgx = new Regex("[^a-z ]");
                                 var data4 = rgx.Replace(data3, "");
-
+								
+								//Console.WriteLine("data3 is " + data3 );
+								
                                 if (data3 == data4)
                                 {
                                     dictionary[data3] = count;
@@ -266,8 +271,13 @@ namespace SpellingConsole
 
 
                 }
+				
             }
-
+			
+			var a = dictionary.getOrElse("lesson plan", 123.0);
+			Console.WriteLine("XXX lesson plan test " + a.ToString() );
+			
+			
         }
 
         private void ReadConfig()
@@ -327,17 +337,23 @@ namespace SpellingConsole
             var comp = new ScoreComparer();
 
             var sortedListOfScores = new SortedList<double, string>(comp);
-
+			
+			var sortedListOfScores2 = new List< Tuple< string, double> >();
+			
             var random = new Random();
-
+			//Console.WriteLine("num candidates " + candidates.Count.ToString() );
+			
             foreach (var c in candidates)
             {
-                //Console.WriteLine("candidate " + (count++).ToString() );
-                sb.Clear();
+				if ( count % 10000 == 0)
+				{
+                	Console.WriteLine("candidate " + (count++).ToString() );
+				}
+				sb.Clear();
 
                 var score = 1.0;
                 var previousWord = "";
-				var bigramScoreAdjustment = 0.0;
+				var bigramScoreAdjustment = 1.0;
 				var bigramScore = 1.0;
 				foreach (var t in c)
                 {
@@ -352,8 +368,14 @@ namespace SpellingConsole
 					{
 						var bigram = previousWord + " "+ t.term;
 						
+						previousWord = t.term;
+						
 						// bigram score.
-						bigramScore = dictionary.getOrElse( bigram, 1.0);
+						bigramScore = dictionary.getOrElse( bigram, 0);
+						
+						// totals of all bigrams added.
+						bigramScoreAdjustment += bigramScore;
+						
 						
 					}
 					
@@ -363,24 +385,82 @@ namespace SpellingConsole
                         sb.Append(" ");
                         score *= t.score;
 						
-						Console.WriteLine("score before bigram" + score.ToString() );
-						
-						score *= bigramScore;
-                    	Console.WriteLine("score after bigram" + score.ToString() );
 						
 					}
 
 					
 
                 }
-
+				
+				
+				// just trying out ideas. A string with more acceptable bigrams gets a bigger score.
+				score = score * bigramScoreAdjustment;
+				
                 var term = sb.ToString().Trim();
 
 
 
                 // if sorted list is too long (greater than n). then trim.
                 // unsure of perf issues here.
-
+				
+				if (true)
+                {
+                    // if sorted list not to max size, then just add.
+                    if (sortedListOfScores2.Count < n)
+                    {
+						
+						var t = new Tuple<string, double>( term, score);
+						
+						sortedListOfScores2.Add( t );
+							
+                    }
+                    else
+                    {
+						
+						// nth score.
+						//var nthScore = sortedListOfScores2.
+						if ( sortedListOfScores2.Count >=n )
+						{
+							//Console.WriteLine("going to check {0} against {1}", n.ToString(), sortedListOfScores2.Count.ToString() );
+							
+							var nthScore = 0.0;
+							
+							if ( sortedListOfScores2.Count > n)
+							{
+								nthScore = sortedListOfScores2[n].Item2;
+							}
+					
+							//Console.WriteLine("done check");
+							
+							if ( score > nthScore )
+							{
+								// unsure if can modify list while iterating through it, so will just make note of the index.
+								var indexToInsert = 0;
+								
+								// loop through linearly and find location for score.
+								foreach( var i in sortedListOfScores2)
+								{
+									Console.WriteLine("looping through sorted list of scores");
+									if ( score > i.Item2 )
+									{
+										break;					
+									}
+									
+									indexToInsert++;
+								}
+								
+								var t = new Tuple<string, double>( term, score);
+								
+								// indexToInsert is the location to insert new index.
+								sortedListOfScores2.Insert( indexToInsert, t);
+								
+								Console.WriteLine( "inserted " + t.ToString() + " into " + indexToInsert.ToString() );
+							}
+						}
+                    }
+                }
+				
+				/*
                 if (true)
                 {
                     // if sorted list not to max size, then just add.
@@ -388,10 +468,26 @@ namespace SpellingConsole
                     {
 
                         // UTTER HACK... but just making sure 2 entries aren't the same.
-                        var delta = 0.0000001 * random.Next(1, 1000);
+                        var delta = 0.0001 * random.Next(1, 10000);
                         score = score - delta;
-                        sortedListOfScores.Add(score, term);
-
+						var done = false;
+						
+						// HACK
+						while (!done)
+						{
+							try
+							{
+								score -= 0.0001;
+                        		sortedListOfScores.Add(score, term);
+								done = true;
+							
+							}
+							catch(System.ArgumentException ex )
+							{
+								
+							}
+						}
+							
                     }
                     else
                     {
@@ -401,26 +497,44 @@ namespace SpellingConsole
 
                         if (score > existingScore)
                         {
-                            var delta = 0.0000001 * random.Next(1, 1000);
+                            var delta = 0.00000001 * random.Next(1, 10000);
                             score = score - delta;
-                            sortedListOfScores.Add(score, term);
-
-
+							
+							var done = false;
+							
+							// HACK
+							while (!done)
+							{
+								try
+								{
+									score -= 0.0000001;
+                            		sortedListOfScores.Add(score, term);
+									done = true;
+								
+								}
+								catch(System.ArgumentException ex )
+								{
+									
+								}
+							}
+							
+							
                             // remove entry at n.
                             // doing this all the time probably inefficient.
                             //sortedListOfScores.RemoveAt( n );
                         }
                     }
                 }
+                */
 
             }
 
-            foreach (var i in sortedListOfScores)
+            foreach (var i in sortedListOfScores2)
             {
 
                 var rq = new ResultQuery();
-                rq.query = i.Value;
-                rq.score = i.Key;
+                rq.query = i.Item1;
+                rq.score = i.Item2;
 
                 l.Add(rq);
             }
@@ -445,17 +559,16 @@ namespace SpellingConsole
             List<List<Token>> chain = new List<List<Token>>();
             List<Variation> variations = new List<Variation>();
 
-
+			// put each variant of the words in the chain list.
+			// eg, convert "foo" to "foot", "foe" etc etc...
             foreach (var word in tokens)
             {
-                List<Token> tuples = givron.TopNCorrect(word, maxCombinationsPerToken);
-                chain.Add(tuples);
-                //Console.WriteLine("list length " + tuples.Count.ToString());
-
-
+                List<Token> wordVariantList = givron.TopNCorrect(word, maxCombinationsPerToken);
+				
+				Console.WriteLine("term {0} generated {1}", word, wordVariantList.Count.ToString() );
+				
+                chain.Add(wordVariantList);
             }
-
-            Console.WriteLine("created top N");
 
             // get all combinations.
             // FIXME  STUPID STUPID LIMITATION OF MY LINQ-FOO.
@@ -492,7 +605,8 @@ namespace SpellingConsole
 			// hack modification for " s" situation. ie, where apostrophies occur.
 			ModifyBasedOnS( finalQueries) ;
 			
-            // modify score based on bigrams scores.
+			// only adjust ranks of EXISTING entries based on bigrams....  and NOT trying to use bigram entries 
+			// on possible word combinations at an earlier stage.
 			ModifyBasedOnBigrams( finalQueries );
 			
 
@@ -504,6 +618,8 @@ namespace SpellingConsole
 		private void  ModifyBasedOnBigrams( List<ResultQuery> queryList )
 		{
 			// go through every pair of words and check for score adjustments.
+			
+
 			
 			
 		
@@ -559,7 +675,8 @@ namespace SpellingConsole
         {
 
             var a = args[0];
-
+			
+			//var a= "women s financial lesson plan";
             //var a = "receipt";
 
             var st = new SpellingTokenizer();
@@ -617,7 +734,7 @@ namespace SpellingConsole
                 var sw = new Stopwatch();
                 sw.Start();
 
-                var res = st.BestN(a, 5);
+                var res = st.BestN(a, 50);
                 sw.Stop();
 
                 foreach (var i in res)

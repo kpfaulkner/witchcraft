@@ -2,15 +2,35 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="witchcraft/SpellingTokenizer.cs">
     <Files>
-      <File FileName="witchcraft/Ranker.cs" Line="1" Column="1" />
-      <File FileName="witchcraft/SpellingTokenizer.cs" Line="578" Column="5" />
-      <File FileName="witchcraft/GivronSpell.cs" Line="342" Column="38" />
+      <File FileName="witchcraft/Ranker.cs" Line="65" Column="22" />
+      <File FileName="witchcraft/SpellingTokenizer.cs" Line="351" Column="6" />
+      <File FileName="witchcraft/GivronSpell.cs" Line="356" Column="40" />
       <File FileName="witchcraft/Program.cs" Line="1" Column="1" />
-      <File FileName="witchcraft/app.config" Line="37" Column="19" />
+      <File FileName="witchcraft/app.config" Line="9" Column="48" />
+      <File FileName="witchcraft/SpellerHelper.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/Users/faulkner/projects/witchcraft/witchcraft/SpellingTokenizer.cs" line="487" />
+      <Breakpoint file="/Users/faulkner/projects/witchcraft/witchcraft/SpellingTokenizer.cs" line="517" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.witchcraft>
+    <MonoDevelop.Ide.CustomExecutionModes>
+      <Data Name="lesson plan" Id="9b05d92b-1c74-4689-9408-ec9d7d33b6a1" ModeId="Default">
+        <CommandData>
+          <Item Key="MonoDevelop.Ide.Execution.CustomArgsCustomizer">
+            <Value Arguments="&quot;women s financial lesson plan&quot;" ctype="CustomArgsExecutionModeData">
+              <EnvironmentVariables />
+            </Value>
+          </Item>
+          <Item Key="MonoDevelop.Ide.Execution.MonoExecutionCustomizer">
+            <Value ctype="MonoExecutionParameters" />
+          </Item>
+        </CommandData>
+      </Data>
+    </MonoDevelop.Ide.CustomExecutionModes>
+  </MonoDevelop.Ide.ItemProperties.witchcraft>
 </Properties>
