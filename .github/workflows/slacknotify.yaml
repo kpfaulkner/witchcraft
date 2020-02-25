@@ -1,4 +1,4 @@
-on: push
+on: gollum
 name: Slack Notification Demo
 jobs:
   slackNotification:
