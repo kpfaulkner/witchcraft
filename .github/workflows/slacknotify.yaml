@@ -10,3 +10,5 @@ jobs:
       uses: rtCamp/action-slack-notify@v2.0.0
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: "Wiki updated!!!"
+        SLACK_TITLE: "Wiki updated"
