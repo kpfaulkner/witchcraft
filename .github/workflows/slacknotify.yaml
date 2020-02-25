@@ -11,4 +11,4 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "Wiki updated!!!"
-        SLACK_TITLE: ${{GITHUB_EVENT_PATH}}
+        SLACK_TITLE: ${{github.event_path}}
