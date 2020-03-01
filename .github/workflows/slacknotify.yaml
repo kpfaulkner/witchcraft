@@ -9,6 +9,5 @@ jobs:
     - name: Slack Notification
       uses: kpfaulkner/precious@0.1.1
       env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "Wiki updated!!!"
         SLACK_TITLE: "my title"
