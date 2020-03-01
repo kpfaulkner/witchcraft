@@ -7,8 +7,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Slack Notification
-      uses: kpfaulkner/precious@0.1.4
+      uses: kpfaulkner/precious@0.1.5
       env:
         SLACK_MESSAGE: "Wiki updated!!!"
         SLACK_TITLE: ""
-        WIKI_TITLES_TO_ALERT: "home"
+        WIKI_TITLES_TO_ALERT: "home,test page"
