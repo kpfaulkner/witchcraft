@@ -1,5 +1,5 @@
 on: gollum
-name: Slack Notification Demo
+name: Slack Notification Demo2
 jobs:
   slackNotification:
     name: Slack Notification
@@ -7,7 +7,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2.0.0
+      uses: kpfaulkner/precious
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "Wiki updated!!!"
