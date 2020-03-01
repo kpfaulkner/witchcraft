@@ -10,4 +10,5 @@ jobs:
       uses: kpfaulkner/precious@0.1.2
       env:
         SLACK_MESSAGE: "Wiki updated!!!"
-        SLACK_TITLE: "my title"
+        SLACK_TITLE: ""
+        WIKI_TITLES_TO_ALERT: "home"
