@@ -12,4 +12,4 @@ jobs:
         SLACK_MESSAGE: "Wiki updated!!!"
         SLACK_TITLE: ""
         WIKI_TITLES_TO_ALERT: "home,test page"
-	SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
