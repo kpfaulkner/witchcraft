@@ -1,0 +1,15 @@
+on: release
+name: ReleaseMonitor
+jobs:
+  slackNotification:
+    name: ReleaseMonitor
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: ReleaseMonitor
+      uses: kpfaulkner/releasemonitor@0.1.0
+      env:
+        SLACK_MESSAGE: "Wiki updated!!!"
+        SLACK_TITLE: ""
+        WIKI_TITLES_TO_ALERT: "home,test page"
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
