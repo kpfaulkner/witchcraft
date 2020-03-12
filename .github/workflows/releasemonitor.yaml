@@ -1,7 +1,7 @@
 on: release
 name: ReleaseMonitor
 jobs:
-  slackNotification:
+  slackNotificationForRelease:
     name: ReleaseMonitor
     runs-on: ubuntu-latest
     steps:
